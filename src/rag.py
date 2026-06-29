@@ -7,30 +7,37 @@ import numpy as np
 
 def build_rag(pdf_path):
     """
-    Reads the PDF, splits it into chunks,
-    generates embeddings, and stores them in FAISS.
+    Reads the PDF, creates chunks with page metadata,
+    generates embeddings and stores them in FAISS.
     """
 
-    # Read PDF
     reader = PdfReader(pdf_path)
 
-    text = ""
-
-    for page in reader.pages:
-        extracted_text = page.extract_text()
-        if extracted_text:
-            text += extracted_text
-
-    # Split into chunks
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
         chunk_overlap=100
     )
 
-    chunks = splitter.split_text(text)
+    chunks = []
+    metadata = []
 
-    print("\nFIRST CHUNK:\n")
-    print(chunks[0][:1000])
+    # Read page by page
+    for page_number, page in enumerate(reader.pages):
+
+        text = page.extract_text()
+
+        if not text:
+            continue
+
+        page_chunks = splitter.split_text(text)
+
+        for chunk in page_chunks:
+
+            chunks.append(chunk)
+
+            metadata.append({
+                "page": page_number + 1
+            })
 
     print("\nTOTAL CHUNKS:", len(chunks))
 
@@ -39,28 +46,24 @@ def build_rag(pdf_path):
         "all-MiniLM-L6-v2"
     )
 
-    # Create embeddings
     embeddings = model.encode(chunks)
 
-    # Create FAISS index
     dimension = embeddings.shape[1]
 
     index = faiss.IndexFlatL2(dimension)
 
     index.add(np.array(embeddings))
 
-    return model, index, chunks
+    return model, index, chunks, metadata
 
 
-def retrieve_context(question, model, index, chunks):
+def retrieve_context(question, model, index, chunks, metadata):
     """
     Retrieves the most relevant chunks for the user's question.
     """
 
-    # Convert question into embedding
     query_embedding = model.encode([question])
 
-    # Search top 5 similar chunks
     distances, indices = index.search(
         np.array(query_embedding),
         5
@@ -72,9 +75,9 @@ def retrieve_context(question, model, index, chunks):
 
     print("\n================ RETRIEVED CHUNKS ================\n")
 
-    for i, idx in enumerate(indices[0], start=1):
+    for rank, idx in enumerate(indices[0], start=1):
 
-        print(f"\nChunk {i}\n")
+        print(f"\nChunk Rank {rank}")
         print("-" * 80)
         print(chunks[idx][:500])
         print("-" * 80)
@@ -83,8 +86,9 @@ def retrieve_context(question, model, index, chunks):
         context += "\n\n"
 
         retrieved_chunks.append({
-        "chunk": int(idx),
-        "preview": chunks[idx][:200]
-   })
+            "chunk": int(idx),
+            "page": metadata[idx]["page"],
+            "preview": chunks[idx][:200]
+        })
 
     return context, retrieved_chunks

@@ -8,7 +8,7 @@ import {
 
 import UploadSection from "../upload/UploadSection";
 
-const drawerWidth = 300;
+const drawerWidth = 280;
 
 function Sidebar() {
   return (
@@ -25,7 +25,7 @@ function Sidebar() {
     >
       <Toolbar />
 
-      <Box p={3}>
+      <Box sx={{ p: 3 }}>
 
         <Typography
           variant="h6"

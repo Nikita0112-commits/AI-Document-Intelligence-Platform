@@ -4,6 +4,7 @@ import {
   Box,
   TextField,
   IconButton,
+  Paper,
 } from "@mui/material";
 
 import SendIcon from "@mui/icons-material/Send";
@@ -11,7 +12,7 @@ import SendIcon from "@mui/icons-material/Send";
 function ChatInput({ onSend }) {
   const [question, setQuestion] = useState("");
 
-  const handleSend = () => {
+  const send = () => {
     if (!question.trim()) return;
 
     onSend(question);
@@ -19,12 +20,12 @@ function ChatInput({ onSend }) {
   };
 
   return (
-    <Box
+    <Paper
+      elevation={3}
       sx={{
+        p: 2,
         display: "flex",
         gap: 2,
-        p: 2,
-        borderTop: "1px solid #ddd",
       }}
     >
       <TextField
@@ -33,19 +34,17 @@ function ChatInput({ onSend }) {
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            handleSend();
-          }
+          if (e.key === "Enter") send();
         }}
       />
 
       <IconButton
         color="primary"
-        onClick={handleSend}
+        onClick={send}
       >
         <SendIcon />
       </IconButton>
-    </Box>
+    </Paper>
   );
 }
 

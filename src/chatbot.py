@@ -2,34 +2,34 @@ from src.config import gemini_model
 from src.rag import retrieve_context
 
 
-def ask_question(question, model, index, chunks):
+def ask_question(question, model, index, chunks, metadata):
     """
     Retrieves relevant context from FAISS and asks Gemini to answer.
     """
 
-    context , sources  = retrieve_context(
+    context, sources = retrieve_context(
         question,
         model,
         index,
-        chunks
+        chunks,
+        metadata
     )
 
     prompt = f"""
 You are an expert AI Research Assistant.
 
-You MUST answer ONLY from the context below.
+Answer ONLY using the provided context.
 
-If the answer exists anywhere in the context,
-answer it naturally.
+If the answer is not available in the context, reply exactly:
 
-Never say:
-- "The context states..."
-- "The provided context..."
-- "According to the context..."
-
-Only say
 "The uploaded document does not contain enough information."
-if the answer truly does not exist.
+
+Do NOT mention:
+- "According to the context..."
+- "The provided context..."
+- "The document states..."
+
+Just answer naturally.
 
 Context:
 {context}
@@ -42,10 +42,14 @@ Answer:
 
     try:
         response = gemini_model.generate_content(prompt)
+
         return {
-        "answer": response.text,
-        "sources": sources
-    }
+            "answer": response.text,
+            "sources": sources
+        }
 
     except Exception as e:
-        return f"Gemini API Error: {str(e)}"
+        return {
+            "answer": f"Gemini API Error: {str(e)}",
+            "sources": []
+        }

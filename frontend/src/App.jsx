@@ -1,32 +1,29 @@
+import { Box, Toolbar } from "@mui/material";
+
 import Header from "./components/layout/Header";
 import Sidebar from "./components/layout/Sidebar";
 import ChatSection from "./components/chat/ChatSection";
 
-import { Box, Toolbar } from "@mui/material";
-
 function App() {
   return (
-    <>
+    <Box sx={{ display: "flex" }}>
       <Header />
 
-      <Box sx={{ display: "flex" }}>
-        <Sidebar />
+      <Sidebar />
 
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            p: 4,
-            bgcolor: "#f5f5f5",
-            minHeight: "100vh",
-          }}
-        >
-          <Toolbar />
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          bgcolor: "#f4f6f8",
+          p: 4,
+        }}
+      >
+        <Toolbar />
 
-          <ChatSection />
-        </Box>
+        <ChatSection />
       </Box>
-    </>
+    </Box>
   );
 }
 
